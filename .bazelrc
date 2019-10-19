@@ -1,8 +1,12 @@
 # use custom c++ toolchain by default
 build --config=cuda_clang
 
+build:opt -c opt --copt="-O2"
+
 build:cuda_clang --crosstool_top=//toolchain:cuda_clang
 build:cuda_clang --cpu=x86_64-ptx-61
 build:cuda_clang --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
+
+build:debug -c dbg --copt="-ggdb" --copt="-O0" --copt="--cuda-noopt-device-debug"
 
 test --test_output=errors

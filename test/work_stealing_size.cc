@@ -1,6 +1,9 @@
 #include "gtest/gtest.h"
-#include "lib/api.hh"
 
+#include "lib/work_stealing_api.cu.hh"
+
+// TODO(damien) fix for non 1080ti systems, tests use hard coded properties
+// instead of using the cudaDeviceProp struct to get the data.
 TEST(work_stealing_size, compute_static) {
 	struct State { uint8_t data[256]; };
 	using WorkIterator = uint8_t;

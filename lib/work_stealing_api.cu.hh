@@ -3,8 +3,8 @@
 
 #include <cinttypes>
 #include <string_view>
-#include <curand.h>
 
+#include "lib/init_ws_state.cu.hh"
 #include "lib/util/cuda_check.hh"
 #include "lib/util/overload_set.hh"
 #include "lib/util/fmt_quantity.hh"
@@ -33,14 +33,17 @@ public:
 		, state_size_{cfg(StateSize{})}
 		, work_state_{cfg(WorkState{})}
 		, valid_{fix_configuration()}
-	{
-		if (valid_) {
-			std::cout << "Launching " << instances_
-				<< " global workstealing queues with "
-			       	<< group_hint_ << " groups of size "
-				<< group_size_ << ". Total Memory usage: "
-				<< fmt_quantity(total_mem()) << "B\n";
-		}
+		, states_(valid_ * instances_)
+	{}
+
+	std::ostream& operator<<(std::ostream& os) const {
+		if (!valid_) { os << "Invalid Configuraion: "; }
+		return os << "Launching " << instances_
+			<< " global workstealing queues with "
+			<< group_hint_ << " groups of size "
+			<< group_size_ << ". Total Memory usage: "
+			<< fmt_quantity(total_mem()) << "B\n";
+
 	}
 
 	constexpr int64_t instances() const { return instances_; }
@@ -77,7 +80,6 @@ private:
 			return total_mem() > int64_t(props_.totalGlobalMem);
 		};
 
-		std::cerr << "requires more memory than is available on device.\n";
 		while (invalid_memory() || !invalid) {
 			if (!invalid && (group_hint_ <= 0 || invalid_memory())) {
 				// globalMem >= instances(work_state + unknown*state_size)
@@ -92,18 +94,23 @@ private:
 			if (!invalid_memory()) break;
 			instances_ -= 2;
 		}
+
+		if (invalid_memory()) {
+			std::cerr << "requires more memory than is available on device.\n";
+		}
+
 		return !invalid;
 	}
 
 	cudaDeviceProp props_;
-	int64_t init_props_;
+	struct InitDummy { constexpr InitDummy(int64_t) {} } init_props_;
 	int64_t instances_;
 	int64_t group_size_;
 	int64_t group_hint_;
 	int64_t state_size_;
 	int64_t work_state_;
 	bool valid_;
-	curandStatus *states; // allocate # of instances.
+	RandomState states_; // allocate # of instances.
 };
 
 #endif // WORK_SHARING_API_CUH

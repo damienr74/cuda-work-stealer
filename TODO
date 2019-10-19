@@ -1,0 +1,12 @@
+TODO(1): represent computation to allow for continuation stealing.
+
+TODO(1): implement compare and swap CAS primitives for stealing.
+
+TODO(2): program an LP solver to figure out some parameters for
+	kernel configuration for work stealing.
+
+TODO(2): configure google bench to allow for measurements of
+	performance results.
+
+TODO(2): write toolchain for NVCC to invesitgate the performance
+	difference with NVCC.

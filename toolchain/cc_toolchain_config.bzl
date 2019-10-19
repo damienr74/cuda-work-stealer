@@ -8,7 +8,7 @@ load("@bazel_skylib//lib:paths.bzl", "paths")
 
 
 def _impl(ctx):
-  clang_path = "/usr/bin/clang++-8"
+  clang_path = "/usr/local/bin/clang++"
   tool_paths = [
     tool_path(
       name = "gcc",
@@ -16,11 +16,11 @@ def _impl(ctx):
     ),
     tool_path(
       name = "ld",
-      path = clang_path,
+      path = "/usr/bin/ld",
     ),
     tool_path(
       name = "ar",
-      path = "/usr/bin/ar",
+      path = "/usr/local/bin/llvm-ar",
     ),
     tool_path(
       name = "cpp",
@@ -32,7 +32,7 @@ def _impl(ctx):
     ),
     tool_path(
       name = "nm",
-      path = "/bin/false",
+      path = "/usr/local/bin/llvm-nm",
     ),
     tool_path(
       name = "objdump",
@@ -40,7 +40,7 @@ def _impl(ctx):
     ),
     tool_path(
       name = "strip",
-      path = "/bin/false",
+      path = "/usr/local/bin/llvm-strip",
     ),
   ]
 
@@ -108,7 +108,7 @@ def _impl(ctx):
     target_system_name = "cuda-unknown-ptx",
     target_cpu = "x86_64-ptx-61",
     target_libc = "unknown",
-    compiler = "clang++-8",
+    compiler = "clang++-10",
     abi_version = "unknown",
     abi_libc_version = "unknown",
     tool_paths = tool_paths,
@@ -117,13 +117,13 @@ def _impl(ctx):
       toolchain_compile_features,
     ],
     cxx_builtin_include_directories = [
-      paths.normalize("/usr/lib/llvm-8/lib/clang/8.0.0/include/cuda_wrappers"),
+      paths.normalize("/usr/local/lib/clang/10.0.0/include/cuda_wrappers"),
       paths.normalize("/usr/local/cuda/include"),
-      paths.normalize("/usr/bin/../lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/c++/7.4.0"),
-      paths.normalize("/usr/bin/../lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/x86_64-linux-gnu/c++/7.4.0"),
-      paths.normalize("/usr/bin/../lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/c++/7.4.0/backward"),
-      paths.normalize("/usr/include/clang/8.0.0/include"),
+      paths.normalize("/usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/c++/7.4.0"),
+      paths.normalize("/usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/x86_64-linux-gnu/c++/7.4.0"),
+      paths.normalize("/usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/c++/7.4.0/backward"),
       paths.normalize("/usr/local/include"),
+      paths.normalize("/usr/local/lib/clang/10.0.0/include"),
       paths.normalize("/usr/include/x86_64-linux-gnu"),
       paths.normalize("/usr/include"),
     ]
