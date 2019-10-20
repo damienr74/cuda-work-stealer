@@ -13,7 +13,7 @@ struct State {
 	uint64_t seed;
 
 	__device__ void init(int64_t tid) {
-		curand_init(seed, tid, tid & seed, &state);
+		curand_init(seed, 1, tid, &state);
 	}
 	__device__ uint32_t get_uniform() { return curand(&state); }
 };
