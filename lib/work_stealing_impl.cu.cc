@@ -25,7 +25,6 @@ __global__ void work_stealing_scheduler(StealingDeques<Work> deques, RandomHandl
 
 
 	while (!complete) {
-		struct Continuation { };
 		if (work) {
 			Continuation cont = work.execute();
 			switch (cont.num) {

@@ -1,12 +1,17 @@
-TODO(1): represent computation to allow for continuation stealing.
+TODO(1): Clearly model the bijection with any n-ary tree to a binary tree.
+	 Use this to model in general arbitrary computations by a binary tree
+	 Of a process and it's continuation at level l. Figure out how to
+	 reconcile the levels and the values that are common. (i.e. the
+	 minimum/sum/maximum over all children of n-ary tree). Use 2 depths?
+	 binary tree depth vs n-ary tree depth and use this to perform the
+	 desired operations. (AWESOME).
 
-TODO(1): implement compare and swap CAS primitives for stealing.
+TODO(1): Finish maximum independent set implementation. (Tree representation).
 
-TODO(2): program an LP solver to figure out some parameters for
+TODO(Inf): program an LP solver to figure out some parameters for
 	kernel configuration for work stealing.
 
-TODO(2): configure google bench to allow for measurements of
-	performance results.
+--------------------------------------------------------------------------------
 
-TODO(2): write toolchain for NVCC to invesitgate the performance
-	difference with NVCC.
+DONE: Implement work stealing algorithm at the SM level.
+DONE: Implement lock-free work-stealing circular-buffer deque.
