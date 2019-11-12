@@ -12,7 +12,14 @@ TEST(work_stealing_size, compute_static) {
 	CUDA_CHECK(cudaGetDeviceProperties(&props, 0))
 		<< "could not communicate with device..\n";
 
-	auto ws = WorkStealer<std::size_t>{OverloadSet{
+	class Work {
+		Work execute() { return *this; }
+		int num() { return 2; }
+		Work c1() { return *this; }
+		Work c2() { return *this; }
+	};
+
+	auto ws = WorkStealer<Work>{OverloadSet{
 		[](GroupSize) {return 32;},
 		[](StateSize) {return sizeof(State);},
 		[](WorkState) {return sizeof(WorkIterator);},
@@ -25,7 +32,7 @@ TEST(work_stealing_size, compute_static) {
 	EXPECT_EQ(ws.work_state(), int64_t(sizeof(WorkIterator)));
 	EXPECT_EQ(ws.valid(), true);
 
-	ws = WorkStealer<std::size_t>{OverloadSet{
+	ws = WorkStealer<Work>{OverloadSet{
 		[](GroupSize) {return 32;},
 		[](StateSize) {return (1<< 15) * sizeof(State);},
 		[](WorkState) {return sizeof(WorkIterator);},
@@ -40,7 +47,7 @@ TEST(work_stealing_size, compute_static) {
 
 	EXPECT_EQ(ws.valid(), true);
 
-	ws = WorkStealer<std::size_t>{OverloadSet{
+	ws = WorkStealer<Work>{OverloadSet{
 		[](GroupSize) {return 32;},
 		[](GroupHint) {return 32;},
 		[](StateSize) {return (1<< 15) * sizeof(State);},
@@ -50,7 +57,7 @@ TEST(work_stealing_size, compute_static) {
 	EXPECT_LE(ws.group_hint(), 24);
 	EXPECT_EQ(ws.valid(), true);
 
-	ws = WorkStealer<std::size_t>{OverloadSet{
+	ws = WorkStealer<Work>{OverloadSet{
 		[](auto) {return -1;}
 	}};
 	EXPECT_EQ(ws.valid(), false);

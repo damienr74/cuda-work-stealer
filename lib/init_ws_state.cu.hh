@@ -8,7 +8,7 @@
 #include "lib/util/cuda_check.hh"
 
 
-struct State {
+struct RandomHandle {
 	curandState_t state;
 	uint64_t seed;
 
@@ -18,13 +18,11 @@ struct State {
 	__device__ uint32_t get_uniform() { return curand(&state); }
 };
 
-struct DeviceState {
+struct RandomHandles {
 	const int64_t size;
-	State * __restrict__ const states;
+	RandomHandle * __restrict__ const handles;
 };
 
-__global__ void k_random_state_seed(State *states, uint64_t *seeds, int64_t n);
-__global__ void k_random_state_reinit(State *states, int64_t n);
 
 class RandomState {
 public:
@@ -43,41 +41,46 @@ public:
 		uint64_t *device_seeds = nullptr;
 		CUDA_CHECK(cudaMalloc(&device_seeds, n * sizeof *randstates_))
 			<< "could not allocate random state data\n";
-		CUDA_CHECK(cudaMemcpy(device_seeds, seeds.data()+n, n * sizeof *device_seeds, cudaMemcpyHostToDevice))
+		CUDA_CHECK(cudaMemcpy(device_seeds, seeds.data()+n, 
+			n * sizeof *device_seeds, cudaMemcpyHostToDevice))
 			<< "error copying state to device\n";
+
+		__global__ void k_random_state_seed(
+			RandomHandle *states,
+			uint64_t *seeds,
+			int64_t n);
+
 		k_random_state_seed<<<n_, 1>>>(randstates_, device_seeds, n);
 		CUDA_CHECK(cudaDeviceSynchronize())
 			<< "error seeding state\n";
-		CUDA_CHECK(cudaFree(device_seeds)) << "error freeing intermediate seed buffer\n";
+		CUDA_CHECK(cudaFree(device_seeds))
+			<< "error freeing intermediate seed buffer\n";
 	}
 
 	// Can be called multiple times.
 	void reinit() {
+		__global__ void k_random_state_reinit(
+			RandomHandle *states,
+			int64_t n);
+
 		k_random_state_reinit<<<n_, 1>>>(randstates_, n_);
 		CUDA_CHECK(cudaDeviceSynchronize())
 			<< "error calling reinit\n";
 	}
 
-	__device__ State& operator[](uint64_t i) {
-		return randstates_[i];
-	}
-
-	__host__ DeviceState device() const {
-		return DeviceState{ n_, randstates_};
+	__host__ RandomHandles device() const {
+		return {n_, randstates_};
 	}
 
 	__host__ __device__ int64_t size() const { return n_; }
 
 	~RandomState() {
-#if defined(__CUDA_ARCH__)
-#else
 		CUDA_CHECK(cudaFree(randstates_))
 			<< "could not free random state data\n";
-#endif
 	}
 private:
 	int64_t n_;
-	State *randstates_;
+	RandomHandle *randstates_;
 };
 
 #endif // LIB_INIT_WS_STATE_CU_HH

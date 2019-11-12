@@ -17,16 +17,16 @@ static void BM_random_init(benchmark::State& state) {
 }
 BENCHMARK(BM_random_init);
 
-__global__ void k_gen_random(DeviceState rs, int n) {
+__global__ void k_gen_random(RandomHandles rs, int n) {
 	int tid = threadIdx.x + blockIdx.x * blockDim.x;
 	if (tid >= rs.size) return;
 
-	__shared__ auto rng = rs.states[tid];
+	__shared__ auto rng = rs.handles[tid];
 	for (int i = 0; i < n; i++) {
 		rng.get_uniform();
 	}
 	// XXX: Omit writeback to have the same state for each kernel call.
-	// rs.states[tid] = rng;
+	// rs.handles[tid] = rng;
 }
 static void BM_generate_only(benchmark::State& state) {
 	auto rs = RandomState(sms);
@@ -40,16 +40,16 @@ static void BM_generate_only(benchmark::State& state) {
 }
 BENCHMARK(BM_generate_only)->Range(1, 1<<15)->Complexity();
 
-__global__ void k_atomicAdd_no_collision(DeviceState rs, int n) {
+__global__ void k_atomicAdd_no_collision(RandomHandles rs, int n) {
 	int tid = threadIdx.x + blockIdx.x * blockDim.x;
 	if (tid >= rs.size) return;
 
-	__shared__ auto rng = rs.states[tid];
+	__shared__ auto rng = rs.handles[tid];
 	for (int i = 0; i < n; i++) {
 		atomicAdd(&collisions[tid], rng.get_uniform() % sms);
 	}
 	// XXX: Omit writeback to have the same state for each kernel call.
-	// rs.states[tid] = rng;
+	// rs.handles[tid] = rng;
 }
 static void BM_atomicAdd_no_collision(benchmark::State& state) {
 	auto rs = RandomState(sms);
@@ -63,16 +63,16 @@ static void BM_atomicAdd_no_collision(benchmark::State& state) {
 }
 BENCHMARK(BM_atomicAdd_no_collision)->Range(1, 1<<15)->Complexity();
 
-__global__ void k_atomicAdd_collision(DeviceState rs, int n) {
+__global__ void k_atomicAdd_collision(RandomHandles rs, int n) {
 	int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
-	__shared__ auto rng = rs.states[tid];
+	__shared__ auto rng = rs.handles[tid];
 	for (int i = 0; i < n; i++) {
 		atomicAdd(&collisions[rng.get_uniform() % sms], u64(i));
 	}
 
 	// XXX: Omit writeback to have the same state for each kernel call.
-	//rs.states[tid] = rng;
+	//rs.handles[tid] = rng;
 }
 static void BM_rng_quality(benchmark::State& state) {
 	auto rs = RandomState(sms);

@@ -5,6 +5,7 @@
 #include <string_view>
 
 #include "lib/init_ws_state.cu.hh"
+#include "lib/efficient_deque.cu.hh"
 #include "lib/util/cuda_check.hh"
 #include "lib/util/overload_set.hh"
 #include "lib/util/fmt_quantity.hh"
@@ -15,6 +16,7 @@ struct GroupSize{}; // Number of threads per logical unit of work.
 struct GroupHint{}; // Hinted number of groups per SM if memory allows.
 struct StateSize{}; // Size of the state used for one group.
 struct WorkState{}; // Size of the state to encode work stealing.
+struct DequeSize{}; // Size of each work stealing deques;
 
 template<typename Work>
 class WorkStealer {
@@ -32,8 +34,10 @@ public:
 		, group_hint_{cfg(GroupHint{})}
 		, state_size_{cfg(StateSize{})}
 		, work_state_{cfg(WorkState{})}
+		, deque_size_{cfg(DequeSize{})}
 		, valid_{fix_configuration()}
-		, states_(valid_ * instances_)
+		, random_(valid_ * instances_)
+		, deques_(valid_ * instances_, valid_ * deque_size_)
 	{}
 
 	std::ostream& operator<<(std::ostream& os) const {
@@ -56,6 +60,10 @@ public:
 		return instances_ *
 			(work_state_ + group_hint_*state_size_);
 	}
+
+	// If you want to implement another work_stealing_algorithm you can use these.
+	RandomHandles random_handles() const { return random_.device(); }
+	StealingDeques<Work> work_deques() const { return deques_.device(); }
 
 
 private:
@@ -109,8 +117,10 @@ private:
 	int64_t group_hint_;
 	int64_t state_size_;
 	int64_t work_state_;
+	int64_t deque_size_;
 	bool valid_;
-	RandomState states_; // allocate # of instances.
+	RandomState random_; // allocate # of instances.
+	WorkStealingState<Work> deques_;
 };
 
 #endif // WORK_SHARING_API_CUH
