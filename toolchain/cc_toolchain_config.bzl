@@ -66,7 +66,7 @@ def _impl(ctx):
           flag_group(flags = [
 	    "-std=c++17",
 	    "-xcuda",
-	    "--cuda-gpu-arch=sm_61",
+	    "--cuda-gpu-arch=sm_70",
 	    "-Wall",
 	    "-Wextra",
 	    "-pedantic",
@@ -118,7 +118,7 @@ def _impl(ctx):
     ],
     cxx_builtin_include_directories = [
       paths.normalize("/usr/local/lib/clang/10.0.0/include/cuda_wrappers"),
-      paths.normalize("/usr/local/cuda/include"),
+      paths.normalize("/usr/local/cuda-10.1/include"),
       paths.normalize("/usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/c++/7.4.0"),
       paths.normalize("/usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/x86_64-linux-gnu/c++/7.4.0"),
       paths.normalize("/usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/c++/7.4.0/backward"),
